@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart File Organizer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #090d16;
+      --card-bg: rgba(17, 24, 39, 0.75);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --card-border-hover: rgba(99, 102, 241, 0.35);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent-primary: #6366f1;
+      --accent-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
+      --accent-glow: rgba(99, 102, 241, 0.4);
+      --success: #10b981;
+      --success-glow: rgba(16, 185, 129, 0.25);
+      --danger: #ef4444;
+      --surface: rgba(30, 41, 59, 0.6);
+      --surface-focus: rgba(30, 41, 59, 0.9);
+      --border-radius-lg: 20px;
+      --border-radius-md: 12px;
+      --border-radius-sm: 8px;
+      --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Ambient Background Glows */
+    .glow-sphere {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(120px);
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.45;
+    }
+
+    .glow-1 {
+      top: -100px;
+      left: 15%;
+      width: 450px;
+      height: 450px;
+      background: radial-gradient(circle, #6366f1, transparent 70%);
+    }
+
+    .glow-2 {
+      bottom: -100px;
+      right: 15%;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, #ec4899, transparent 70%);
+      opacity: 0.3;
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 680px;
+    }
+
+    /* Header */
+    .header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .brand-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 9999px;
+      background: rgba(99, 102, 241, 0.12);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      color: #a5b4fc;
+      font-size: 0.82rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+      backdrop-filter: blur(8px);
+    }
+
+    .brand-badge svg {
+      width: 14px;
+      height: 14px;
+      stroke: currentColor;
+    }
+
+    .title {
+      font-size: 2.4rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.15;
+      background: linear-gradient(180deg, #ffffff 30%, #cbd5e1 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 10px;
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 1rem;
+      max-width: 480px;
+      margin: 0 auto;
+      line-height: 1.5;
+    }
+
+    /* Main Card */
+    .card {
+      background: var(--card-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--card-border);
+      border-radius: var(--border-radius-lg);
+      padding: 36px 32px;
+      box-shadow: 0 24px 60px -12px rgba(0, 0, 0, 0.6), 
+                  0 0 0 1px rgba(255, 255, 255, 0.05);
+      transition: var(--transition);
+    }
+
+    .card:hover {
+      border-color: var(--card-border-hover);
+      box-shadow: 0 28px 70px -10px rgba(0, 0, 0, 0.7),
+                  0 0 25px rgba(99, 102, 241, 0.15);
+    }
+
+    /* Input Field Section */
+    .input-section {
+      margin-bottom: 24px;
+    }
+
+    .label-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .field-label {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #e2e8f0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .field-hint {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .input-box-container {
+      position: relative;
+      flex: 1;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 14px;
+      color: var(--text-muted);
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .folder-input {
+      width: 100%;
+      height: 52px;
+      padding: 0 42px 0 44px;
+      background: var(--surface);
+      border: 1px solid var(--card-border);
+      border-radius: var(--border-radius-md);
+      color: var(--text-main);
+      font-size: 0.95rem;
+      font-family: inherit;
+      transition: var(--transition);
+      outline: none;
+    }
+
+    .folder-input:focus {
+      border-color: var(--accent-primary);
+      background: var(--surface-focus);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+    }
+
+    .folder-input::placeholder {
+      color: #64748b;
+    }
+
+    .clear-btn {
+      position: absolute;
+      right: 12px;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 6px;
+      border-radius: 6px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition);
+    }
+
+    .clear-btn:hover {
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .browse-btn {
+      height: 52px;
+      padding: 0 18px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--card-border);
+      border-radius: var(--border-radius-md);
+      color: #e2e8f0;
+      font-size: 0.9rem;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: var(--transition);
+      white-space: nowrap;
+    }
+
+    .browse-btn:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.2);
+      transform: translateY(-1px);
+    }
+
+    .browse-btn:active {
+      transform: translateY(0);
+    }
+
+    /* Quick Shortcuts */
+    .shortcuts {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .shortcut-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .chip {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: #cbd5e1;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.76rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .chip:hover {
+      background: rgba(99, 102, 241, 0.15);
+      border-color: rgba(99, 102, 241, 0.4);
+      color: #ffffff;
+    }
+
+    /* Options / Toggles */
+    .options-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 16px;
+      background: rgba(15, 23, 42, 0.45);
+      border: 1px solid var(--card-border);
+      border-radius: var(--border-radius-md);
+      margin-bottom: 24px;
+      font-size: 0.85rem;
+    }
+
+    .option-label {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .option-title {
+      font-weight: 600;
+      color: #e2e8f0;
+    }
+
+    .option-desc {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .select-dropdown {
+      background: var(--surface);
+      border: 1px solid var(--card-border);
+      color: #f1f5f9;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 0.85rem;
+      outline: none;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .select-dropdown:hover, .select-dropdown:focus {
+      border-color: var(--accent-primary);
+    }
+
+    /* Organise Button */
+    .organise-btn {
+      width: 100%;
+      height: 56px;
+      background: var(--accent-gradient);
+      border: none;
+      border-radius: var(--border-radius-md);
+      color: #ffffff;
+      font-size: 1.05rem;
+      font-weight: 700;
+      font-family: inherit;
+      letter-spacing: 0.01em;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 8px 24px var(--accent-glow);
+      transition: var(--transition);
+    }
+
+    .organise-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 30px rgba(99, 102, 241, 0.55);
+      filter: brightness(1.08);
+    }
+
+    .organise-btn:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    .organise-btn:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-spinner {
+      display: none;
+      width: 20px;
+      height: 20px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top-color: #ffffff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Alerts and Status Container */
+    .status-container {
+      margin-top: 24px;
+      display: none;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .alert {
+      padding: 16px 18px;
+      border-radius: var(--border-radius-md);
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 16px;
+      font-size: 0.9rem;
+      line-height: 1.45;
+    }
+
+    .alert-success {
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #a7f3d0;
+    }
+
+    .alert-error {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #fca5a5;
+    }
+
+    .alert-icon {
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    /* Summary Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .stat-card {
+      background: rgba(15, 23, 42, 0.5);
+      border: 1px solid var(--card-border);
+      border-radius: var(--border-radius-md);
+      padding: 14px;
+      text-align: center;
+    }
+
+    .stat-number {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: #ffffff;
+      line-height: 1.2;
+    }
+
+    .stat-label {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-top: 4px;
+    }
+
+    /* Categories / Extension Tags */
+    .breakdown-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 10px;
+    }
+
+    .tags-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .tag-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(99, 102, 241, 0.12);
+      border: 1px solid rgba(99, 102, 241, 0.25);
+      padding: 5px 12px;
+      border-radius: 9999px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #c7d2fe;
+    }
+
+    .tag-count {
+      background: rgba(99, 102, 241, 0.35);
+      color: #ffffff;
+      font-size: 0.75rem;
+      padding: 1px 6px;
+      border-radius: 9999px;
+    }
+
+    /* Log Preview Table */
+    .log-box {
+      background: rgba(10, 15, 28, 0.7);
+      border: 1px solid var(--card-border);
+      border-radius: var(--border-radius-md);
+      max-height: 200px;
+      overflow-y: auto;
+      padding: 10px 14px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+    }
+
+    .log-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      color: #cbd5e1;
+    }
+
+    .log-item:last-child {
+      border-bottom: none;
+    }
+
+    .log-dest {
+      color: #38bdf8;
+    }
+
+    .open-folder-btn {
+      margin-top: 14px;
+      width: 100%;
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--card-border);
+      border-radius: var(--border-radius-sm);
+      color: #cbd5e1;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: var(--transition);
+    }
+
+    .open-folder-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #ffffff;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 4px;
+    }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      margin-top: 28px;
+      color: #64748b;
+      font-size: 0.82rem;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="glow-sphere glow-1"></div>
+  <div class="glow-sphere glow-2"></div>
+
+  <div class="container">
+    <!-- Header -->
+    <header class="header">
+      <div class="brand-badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+        </svg>
+        Python File Organizer
+      </div>
+      <h1 class="title">Tidy Up Your Files</h1>
+      <p class="subtitle">Quickly sort any messy folder into organized subdirectories by file format in a single click.</p>
+    </header>
+
+    <!-- Main Card -->
+    <main class="card">
+      <form id="organizeForm" onsubmit="event.preventDefault(); organizeFiles();">
+        <div class="input-section">
+          <div class="label-row">
+            <label for="folderPath" class="field-label">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+              </svg>
+              Folder Location
+            </label>
+            <span class="field-hint">Paste path or click Browse</span>
+          </div>
+
+          <div class="input-wrapper">
+            <div class="input-box-container">
+              <span class="input-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M3 7v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-6l-2-2H5a2 2 0 0 0-2 2z"></path>
+                </svg>
+              </span>
+              <input 
+                type="text" 
+                id="folderPath" 
+                class="folder-input" 
+                placeholder="e.g. C:\Users\Username\Downloads" 
+                autocomplete="off"
+                spellcheck="false"
+                required
+              >
+              <button type="button" id="clearBtn" class="clear-btn" title="Clear">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+            
+            <button type="button" class="browse-btn" id="browseBtn" onclick="browseFolder()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 8 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"></path>
+              </svg>
+              Browse
+            </button>
+          </div>
+
+          <!-- Shortcuts -->
+          <div class="shortcuts" id="shortcutsBar">
+            <span class="shortcut-label">Quick select:</span>
+            <button type="button" class="chip" onclick="setShortcut('Downloads')">Downloads</button>
+            <button type="button" class="chip" onclick="setShortcut('Documents')">Documents</button>
+            <button type="button" class="chip" onclick="setShortcut('Desktop')">Desktop</button>
+            <button type="button" class="chip" onclick="setShortcut('Current')">Current Folder</button>
+          </div>
+        </div>
+
+        <!-- Options -->
+        <div class="options-row">
+          <div class="option-label">
+            <span class="option-title">Organization Mode</span>
+            <span class="option-desc">Choose how files are categorized into folders</span>
+          </div>
+          <select id="organizeMode" class="select-dropdown">
+            <option value="extension">By Extension (pdf, png, zip...)</option>
+            <option value="category">By Category (Images, Docs, Audio...)</option>
+          </select>
+        </div>
+
+        <!-- Organise Button -->
+        <button type="submit" id="organiseBtn" class="organise-btn">
+          <span class="btn-spinner" id="btnSpinner"></span>
+          <svg id="btnIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="23 4 23 10 17 10"></polyline>
+            <polyline points="1 20 1 14 7 14"></polyline>
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+          </svg>
+          <span id="btnText">Organise</span>
+        </button>
+      </form>
+
+      <!-- Status & Results Container -->
+      <div id="statusContainer" class="status-container">
+        <div id="alertBox" class="alert"></div>
+
+        <div id="resultsCard" style="display: none;">
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-number" id="statFiles">0</div>
+              <div class="stat-label">Files Moved</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-number" id="statFolders">0</div>
+              <div class="stat-label">Folders Created</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-number" id="statTime">0.1s</div>
+              <div class="stat-label">Processing Time</div>
+            </div>
+          </div>
+
+          <div class="breakdown-title">Folder Breakdown</div>
+          <div class="tags-container" id="tagsContainer"></div>
+
+          <div class="breakdown-title">Activity Log</div>
+          <div class="log-box" id="logBox"></div>
+
+          <button type="button" class="open-folder-btn" id="openFolderBtn" onclick="openCurrentFolder()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+              <polyline points="15 3 21 3 21 9"></polyline>
+              <line x1="10" y1="14" x2="21" y2="3"></line>
+            </svg>
+            Open Folder in File Explorer
+          </button>
+        </div>
+      </div>
+    </main>
+
+    <footer class="footer">
+      Designed with Python &amp; HTML Frontend
+    </footer>
+  </div>
+
+  <script>
+    const folderInput = document.getElementById('folderPath');
+    const clearBtn = document.getElementById('clearBtn');
+    const organiseBtn = document.getElementById('organiseBtn');
+    const btnText = document.getElementById('btnText');
+    const btnIcon = document.getElementById('btnIcon');
+    const btnSpinner = document.getElementById('btnSpinner');
+    const statusContainer = document.getElementById('statusContainer');
+    const alertBox = document.getElementById('alertBox');
+    const resultsCard = document.getElementById('resultsCard');
+    const statFiles = document.getElementById('statFiles');
+    const statFolders = document.getElementById('statFolders');
+    const statTime = document.getElementById('statTime');
+    const tagsContainer = document.getElementById('tagsContainer');
+    const logBox = document.getElementById('logBox');
+
+    // Input clear button toggle
+    folderInput.addEventListener('input', () => {
+      clearBtn.style.display = folderInput.value ? 'flex' : 'none';
+    });
+
+    clearBtn.addEventListener('click', () => {
+      folderInput.value = '';
+      clearBtn.style.display = 'none';
+      folderInput.focus();
+    });
+
+    // Native folder picker via Python backend
+    async function browseFolder() {
+      try {
+        const res = await fetch('/api/browse');
+        const data = await res.json();
+        if (data.folder) {
+          folderInput.value = data.folder;
+          clearBtn.style.display = 'flex';
+        }
+      } catch (err) {
+        console.error('Browse error:', err);
+      }
+    }
+
+    // Quick shortcuts
+    async function setShortcut(type) {
+      try {
+        const res = await fetch(`/api/quick-path?type=${type}`);
+        const data = await res.json();
+        if (data.path) {
+          folderInput.value = data.path;
+          clearBtn.style.display = 'flex';
+        }
+      } catch (err) {
+        console.error('Shortcut error:', err);
+      }
+    }
+
+    // Open target folder in explorer
+    async function openCurrentFolder() {
+      const folder = folderInput.value.trim();
+      if (!folder) return;
+      try {
+        await fetch('/api/open-folder', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ folder })
+        });
+      } catch (err) {
+        console.error('Open folder error:', err);
+      }
+    }
+
+    // Organize files
+    async function organizeFiles() {
+      const folder = folderInput.value.trim();
+      if (!folder) {
+        showAlert('error', 'Please enter or select a folder path.');
+        return;
+      }
+
+      const mode = document.getElementById('organizeMode').value;
+
+      // Loading state
+      organiseBtn.disabled = true;
+      btnText.textContent = 'Organising...';
+      btnIcon.style.display = 'none';
+      btnSpinner.style.display = 'inline-block';
+      statusContainer.style.display = 'none';
+      resultsCard.style.display = 'none';
+
+      try {
+        const res = await fetch('/api/organize', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ folder, mode })
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+          showAlert('success', data.message || 'Folder successfully organized!');
+          
+          statFiles.textContent = data.total_files || 0;
+          statFolders.textContent = data.folders_created || 0;
+          statTime.textContent = (data.time_taken || 0.05).toFixed(2) + 's';
+
+          // Render breakdown tags
+          tagsContainer.innerHTML = '';
+          const breakdown = data.breakdown || {};
+          const keys = Object.keys(breakdown);
+          if (keys.length > 0) {
+            keys.sort().forEach(ext => {
+              const tag = document.createElement('div');
+              tag.className = 'tag-badge';
+              tag.innerHTML = `📁 .${ext} <span class="tag-count">${breakdown[ext]}</span>`;
+              tagsContainer.appendChild(tag);
+            });
+          } else {
+            tagsContainer.innerHTML = '<span style="color: #64748b; font-size: 0.85rem;">No files needed moving.</span>';
+          }
+
+          // Render log
+          logBox.innerHTML = '';
+          const logs = data.moved_files || [];
+          if (logs.length > 0) {
+            logs.forEach(item => {
+              const row = document.createElement('div');
+              row.className = 'log-item';
+              row.innerHTML = `
+                <span title="${item.file}">${item.file}</span>
+                <span class="log-dest">→ ${item.dest}</span>
+              `;
+              logBox.appendChild(row);
+            });
+          } else {
+            logBox.innerHTML = '<div style="color: #64748b; padding: 4px 0;">Folder is already organized or contains no files to move.</div>';
+          }
+
+          resultsCard.style.display = 'block';
+        } else {
+          showAlert('error', data.error || 'Failed to organize folder.');
+        }
+      } catch (err) {
+        showAlert('error', 'Network error or backend server not responding.');
+      } finally {
+        organiseBtn.disabled = false;
+        btnText.textContent = 'Organise';
+        btnIcon.style.display = 'inline-block';
+        btnSpinner.style.display = 'none';
+        statusContainer.style.display = 'block';
+      }
+    }
+
+    function showAlert(type, message) {
+      alertBox.className = `alert alert-${type}`;
+      const icon = type === 'success' 
+        ? `<svg class="alert-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>`
+        : `<svg class="alert-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>`;
+      alertBox.innerHTML = `${icon}<div>${message}</div>`;
+      statusContainer.style.display = 'block';
+    }
+  </script>
+</body>
+</html>

@@ -6,7 +6,11 @@ import threading
 from pathlib import Path
 from flask import Flask, render_template, request, jsonify
 
-app = Flask(__name__)
+template_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
+if not os.path.exists(template_dir):
+    template_dir = os.path.dirname(os.path.abspath(__file__))
+
+app = Flask(__name__, template_folder=template_dir)
 
 CATEGORY_MAP = {
     'Images': ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg', 'webp', 'ico', 'tiff', 'heic'],
